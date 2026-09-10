@@ -1,0 +1,29 @@
+# Web API
+fastapi
+uvicorn
+
+# Authentication & Configuration
+pyjwt
+pwdlib[argon2]
+pydantic-settings
+
+# Database
+sqlalchemy
+psycopg[binary]
+
+# File Uploads
+python-multipart
+
+# AI
+langchain
+langchain-google-genai
+langchain-ollama
+langgraph
+langgraph-checkpoint-postgres
+
+# Vector Database
+pinecone
+
+# Document Processing
+pypdf
+langchain-text-splitters

@@ -1,0 +1,79 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/app/assets/sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  pinecone:
+    image: ghcr.io/pinecone-io/pinecone-local:latest
+    container_name: pinecone
+    environment: 
+      PORT: 5080
+      PINECONE_HOST: localhost
+    ports: 
+      - "5080-5081:5080-5081"
+    platform: linux/amd64
+  
+  ingestion:
+    build:
+      context: ./backend
+    container_name: ingestion_job
+    command: ["sh", "-c", "python -m app.scripts.re_embed && python -m app.scripts.ingestion"]
+    env_file:
+      - .env
+    depends_on:
+      pinecone:
+        condition: service_started
+      db:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: chatbot_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      pinecone:
+        condition: service_started
+      db:
+        condition: service_healthy
+  
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: chatbot_frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

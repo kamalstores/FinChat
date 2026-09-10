@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS chat_sessions;
+CREATE TABLE chat_sessions (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(255) UNIQUE NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
