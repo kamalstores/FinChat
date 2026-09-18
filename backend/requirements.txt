@@ -17,7 +17,6 @@ python-multipart
 # AI
 langchain
 langchain-google-genai
-langchain-ollama
 langgraph
 langgraph-checkpoint-postgres
 
